@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SECURE TERMINAL</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: #050505;
+            color: #00ff41;
+            font-family: "Courier New", monospace;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        /* CRT scan lines */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(255,255,255,0.02) 0px,
+                rgba(255,255,255,0.02) 1px,
+                transparent 2px,
+                transparent 4px
+            );
+        }
+
+        /* Green screen glow */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            box-shadow:
+                inset 0 0 80px rgba(0,255,65,0.08),
+                inset 0 0 180px rgba(0,255,65,0.04);
+        }
+
+        .terminal {
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .top {
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .title {
+            font-size: clamp(28px, 7vw, 65px);
+            font-weight: bold;
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px #00ff41;
+            animation: flicker 3s infinite;
+        }
+
+        .subtitle {
+            color: #ff3333;
+            font-size: 14px;
+            letter-spacing: 3px;
+            margin-top: 5px;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .online {
+            color: #00ff41;
+        }
+
+        .danger {
+            color: #ff3333;
+        }
+
+        .terminal-window {
+            height: calc(100vh - 160px);
+            overflow: hidden;
+            border: 1px solid #333;
+            padding: 15px;
+            background: rgba(0, 10, 3, 0.8);
+            box-shadow: 0 0 25px rgba(0,255,65,0.08);
+        }
+
+        .line {
+            margin: 5px 0;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .gray {
+            color: #777;
+        }
+
+        .green {
+            color: #00ff41;
+        }
+
+        .red {
+            color: #ff3333;
+        }
+
+        .yellow {
+            color: #ffff00;
+        }
+
+        .cyan {
+            color: #00eaff;
+        }
+
+        .progress-box {
+            margin: 15px 0;
+            border: 1px solid #555;
+            padding: 10px;
+            max-width: 700px;
+        }
+
+        .progress {
+            height: 18px;
+            border: 1px solid #00ff41;
+            padding: 2px;
+        }
+
+        .bar {
+            width: 0%;
+            height: 100%;
+            background: #00ff41;
+            box-shadow: 0 0 10px #00ff41;
+            transition: width 0.25s;
+        }
+
+        .percent {
+            margin-top: 6px;
+            color: #00ff41;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 9px;
+            height: 17px;
+            background: #00ff41;
+            vertical-align: middle;
+            animation: blink 0.7s infinite;
+        }
+
+        /* Final screen */
+        .access {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            z-index: 200;
+        }
+
+        .access h1 {
+            font-size: clamp(38px, 9vw, 80px);
+            margin: 0;
+            color: #00ff41;
+            letter-spacing: 8px;
+            text-shadow: 0 0 25px #00ff41;
+            animation: glitch 0.8s infinite;
+        }
+
+        .access p {
+            color: #aaa;
+            font-size: 16px;
+        }
+
+        .access .secure {
+            color: #00ff41;
+            margin-top: 15px;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 63%, 64%, 100% {
+                opacity: 1;
+            }
+
+            20%, 62% {
+                opacity: 0.45;
+            }
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+
+            20% {
+                transform: translate(-3px, 2px);
+            }
+
+            40% {
+                transform: translate(3px, -2px);
+            }
+
+            60% {
+                transform: translate(-2px, 1px);
+            }
+
+            80% {
+                transform: translate(2px, -1px);
+            }
+
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .terminal {
+                padding: 10px;
+            }
+
+            .title {
+                letter-spacing: 2px;
+            }
+
+            .terminal-window {
+                padding: 10px;
+            }
+
+            .line {
+                font-size: 11px;
+            }
+
+            .status {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="terminal">
+
+    <div class="top">
+
+        <div class="title">
+            SECURE TERMINAL
+        </div>
+
+        <div class="subtitle">
+            ⚠ RESTRICTED ACCESS // SECURITY PROTOCOL
+        </div>
+
+        <div class="status">
+            <span>
+                SYSTEM:
+                <span class="online">ONLINE</span>
+            </span>
+
+            <span>
+                CONNECTION:
+                <span class="online">ENCRYPTED</span>
+            </span>
+
+            <span>
+                STATUS:
+                <span class="danger">MONITORING</span>
+            </span>
+        </div>
+
+    </div>
+
+
+    <div class="terminal-window" id="terminal">
+
+        <div class="line gray">
+            [BOOT] Secure terminal initializing...
+        </div>
+
+        <div class="line">
+            [SYSTEM] Loading security modules...
+        </div>
+
+        <div class="line">
+            [SYSTEM] Establishing protected session...
+        </div>
+
+        <div class="line cyan">
+            [NETWORK] Connection channel initialized.
+        </div>
+
+        <div class="line yellow">
+            [WARNING] Security verification required.
+        </div>
+
+        <div class="progress-box">
+
+            <div class="progress">
+                <div class="bar" id="bar"></div>
+            </div>
+
+            <div class="percent" id="percent">
+                SECURITY SCAN: 0%
+            </div>
+
+        </div>
+
+        <div id="logs"></div>
+
+        <div class="line">
+            <span class="red">&gt;&gt;&gt;</span>
+            <span id="command"></span>
+            <span class="cursor"></span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Final screen -->
+
+<div class="access" id="access">
+
+    <h1>ACCESS GRANTED</h1>
+
+    <p>Security verification completed.</p>
+
+    <p class="secure">
+       Thank you for scanning BOY????????!!!!!!!!!!!
+    </p>
+
+</div>
+
+
+<script>
+
+    const bar = document.getElementById("bar");
+    const percent = document.getElementById("percent");
+    const logs = document.getElementById("logs");
+    const command = document.getElementById("command");
+
+    const messages = [
+
+        ["[SCAN] Initializing security analysis...", "green"],
+
+        ["[SCAN] Checking security layers...", "green"],
+
+        ["[NETWORK] Analyzing connection channel...", "cyan"],
+
+        ["[AUTH] Verifying session...", "yellow"],
+
+        ["[FIREWALL] Security layer detected.", "red"],
+
+        ["[SYSTEM] Processing encrypted session...", "cyan"],
+
+        ["[SYSTEM] Verification sequence running...", "green"],
+
+        ["[ACCESS] Final security check...", "yellow"],
+
+        ["[ACCESS] Verification completed.", "green"]
+
+    ];
+
+    let progress = 0;
+    let logIndex = 0;
+
+
+    function addLog(text, color) {
+
+        const line = document.createElement("div");
+
+        line.className = "line " + color;
+
+        line.textContent = text;
+
+        logs.appendChild(line);
+
+        /*
+            Keep terminal from overflowing
+        */
+
+        if (logs.children.length > 12) {
+            logs.removeChild(logs.children[0]);
+        }
+    }
+
+
+    const scan = setInterval(() => {
+
+        progress += Math.floor(Math.random() * 6) + 2;
+
+        if (progress >= 100) {
+
+            progress = 100;
+
+            clearInterval(scan);
+
+            percent.textContent =
+                "SECURITY SCAN: 100%";
+
+            bar.style.width = "100%";
+
+            setTimeout(() => {
+
+                document.getElementById("access")
+                    .style.display = "flex";
+
+            }, 1800);
+        }
+
+        bar.style.width = progress + "%";
+
+        percent.textContent =
+            "SECURITY SCAN: " + progress + "%";
+
+
+        if (
+            logIndex < messages.length &&
+            progress >= (logIndex + 1) * 10
+        ) {
+
+            addLog(
+                messages[logIndex][0],
+                messages[logIndex][1]
+            );
+
+            logIndex++;
+        }
+
+    }, 450);
+
+
+    /* Fake terminal typing */
+
+    const text = "verify_secure_session";
+
+    let i = 0;
+
+    function typeCommand() {
+
+        if (i < text.length) {
+
+            command.textContent += text[i];
+
+            i++;
+
+            setTimeout(typeCommand, 90);
+
+        }
+
+    }
+
+    typeCommand();
+
+</script>
+
+</body>
+</html>
