@@ -1,90 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Mobile responsive -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta name="theme-color" content="#050505">
 
     <title>SECURE TERMINAL</title>
 
     <style>
+
+        /* =========================================
+           RESET
+        ========================================= */
+
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        html, body {
-            margin: 0;
+        html,
+        body {
             width: 100%;
-            height: 100%;
+            min-height: 100%;
             background: #050505;
-            color: #00ff41;
-            font-family: "Courier New", monospace;
         }
 
         body {
-            overflow: hidden;
+            color: #00ff41;
+            font-family: "Courier New", monospace;
+            overflow-x: hidden;
         }
 
-        /* CRT scan lines */
+
+        /* =========================================
+           CRT EFFECT
+        ========================================= */
+
         body::before {
             content: "";
             position: fixed;
             inset: 0;
+
             pointer-events: none;
+
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(255,255,255,0.025) 0px,
+                    rgba(255,255,255,0.025) 1px,
+                    transparent 2px,
+                    transparent 4px
+                );
+
             z-index: 100;
-            background: repeating-linear-gradient(
-                to bottom,
-                rgba(255,255,255,0.02) 0px,
-                rgba(255,255,255,0.02) 1px,
-                transparent 2px,
-                transparent 4px
-            );
         }
 
-        /* Green screen glow */
         body::after {
             content: "";
+
             position: fixed;
             inset: 0;
+
             pointer-events: none;
+
             box-shadow:
                 inset 0 0 80px rgba(0,255,65,0.08),
                 inset 0 0 180px rgba(0,255,65,0.04);
+
+            z-index: 101;
         }
+
+
+        /* =========================================
+           MAIN TERMINAL
+        ========================================= */
 
         .terminal {
             width: 100%;
-            height: 100vh;
-            padding: 20px;
-            overflow: hidden;
+            min-height: 100vh;
+
+            padding:
+                20px
+                max(20px, env(safe-area-inset-right))
+                20px
+                max(20px, env(safe-area-inset-left));
+
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(0,255,65,0.025),
+                    transparent 70%
+                );
         }
 
+
+        /* =========================================
+           HEADER
+        ========================================= */
+
         .top {
+            width: 100%;
+
             border-bottom: 1px solid #00ff41;
-            padding-bottom: 12px;
+
+            padding-bottom: 14px;
             margin-bottom: 15px;
         }
 
         .title {
             font-size: clamp(28px, 7vw, 65px);
+
             font-weight: bold;
+
             letter-spacing: 5px;
-            text-shadow: 0 0 15px #00ff41;
+
+            line-height: 1.1;
+
+            text-shadow:
+                0 0 5px #00ff41,
+                0 0 15px #00ff41;
+
             animation: flicker 3s infinite;
         }
 
         .subtitle {
+            margin-top: 8px;
+
             color: #ff3333;
-            font-size: 14px;
+
+            font-size: clamp(10px, 2vw, 15px);
+
+            font-weight: bold;
+
             letter-spacing: 3px;
-            margin-top: 5px;
+
+            line-height: 1.5;
         }
+
+
+        /* =========================================
+           STATUS
+        ========================================= */
 
         .status {
             display: flex;
+
             justify-content: space-between;
+
+            align-items: center;
+
             flex-wrap: wrap;
-            margin-top: 12px;
-            font-size: 13px;
+
+            gap: 8px;
+
+            margin-top: 13px;
+
+            font-size: 12px;
+
+            line-height: 1.5;
         }
 
         .online {
@@ -95,125 +174,273 @@
             color: #ff3333;
         }
 
-        .terminal-window {
-            height: calc(100vh - 160px);
-            overflow: hidden;
-            border: 1px solid #333;
-            padding: 15px;
-            background: rgba(0, 10, 3, 0.8);
-            box-shadow: 0 0 25px rgba(0,255,65,0.08);
-        }
-
-        .line {
-            margin: 5px 0;
-            font-size: 14px;
-            white-space: pre-wrap;
-        }
-
-        .gray {
-            color: #777;
-        }
-
-        .green {
-            color: #00ff41;
-        }
-
-        .red {
-            color: #ff3333;
+        .cyan {
+            color: #00eaff;
         }
 
         .yellow {
             color: #ffff00;
         }
 
-        .cyan {
-            color: #00eaff;
+        .gray {
+            color: #777;
         }
 
-        .progress-box {
-            margin: 15px 0;
-            border: 1px solid #555;
-            padding: 10px;
-            max-width: 700px;
+        .red {
+            color: #ff3333;
         }
 
-        .progress {
-            height: 18px;
-            border: 1px solid #00ff41;
-            padding: 2px;
-        }
-
-        .bar {
-            width: 0%;
-            height: 100%;
-            background: #00ff41;
-            box-shadow: 0 0 10px #00ff41;
-            transition: width 0.25s;
-        }
-
-        .percent {
-            margin-top: 6px;
+        .green {
             color: #00ff41;
         }
 
-        .cursor {
-            display: inline-block;
-            width: 9px;
-            height: 17px;
+
+        /* =========================================
+           TERMINAL WINDOW
+        ========================================= */
+
+        .terminal-window {
+
+            width: 100%;
+
+            min-height: 500px;
+
+            border: 1px solid #164c24;
+
+            padding: 18px;
+
+            background:
+                linear-gradient(
+                    rgba(0,20,5,0.92),
+                    rgba(0,10,3,0.92)
+                );
+
+            box-shadow:
+                0 0 25px rgba(0,255,65,0.08),
+                inset 0 0 30px rgba(0,255,65,0.025);
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================
+           TERMINAL TEXT
+        ========================================= */
+
+        .line {
+            margin: 6px 0;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            white-space: normal;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /* =========================================
+           PROGRESS
+        ========================================= */
+
+        .progress-box {
+
+            width: 100%;
+
+            max-width: 750px;
+
+            margin: 18px 0;
+
+            padding: 10px;
+
+            border: 1px solid #555;
+
+            background: rgba(0,0,0,0.35);
+        }
+
+        .progress {
+
+            width: 100%;
+
+            height: 20px;
+
+            padding: 2px;
+
+            border: 1px solid #00ff41;
+
+            background: #001000;
+        }
+
+        .bar {
+
+            width: 0%;
+
+            height: 100%;
+
             background: #00ff41;
+
+            box-shadow:
+                0 0 8px #00ff41,
+                0 0 15px rgba(0,255,65,0.5);
+
+            transition: width 0.25s linear;
+        }
+
+        .percent {
+
+            margin-top: 7px;
+
+            font-size: 13px;
+
+            color: #00ff41;
+        }
+
+
+        /* =========================================
+           COMMAND LINE
+        ========================================= */
+
+        .input-line {
+
+            margin-top: 15px;
+
+            font-size: 14px;
+
+            color: #fff;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+        }
+
+        .command-symbol {
+            color: #ff3333;
+        }
+
+        .cursor {
+
+            display: inline-block;
+
+            width: 9px;
+
+            height: 17px;
+
+            margin-left: 3px;
+
+            background: #00ff41;
+
             vertical-align: middle;
+
+            box-shadow: 0 0 8px #00ff41;
+
             animation: blink 0.7s infinite;
         }
 
-        /* Final screen */
+
+        /* =========================================
+           FINAL ACCESS SCREEN
+        ========================================= */
+
         .access {
+
             position: fixed;
+
             inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            padding: 20px;
+
             background: #000;
+
             display: none;
+
             align-items: center;
+
             justify-content: center;
+
             flex-direction: column;
+
             text-align: center;
+
             z-index: 200;
         }
 
         .access h1 {
+
             font-size: clamp(38px, 9vw, 80px);
-            margin: 0;
+
             color: #00ff41;
-            letter-spacing: 8px;
-            text-shadow: 0 0 25px #00ff41;
+
+            letter-spacing: 6px;
+
+            line-height: 1.2;
+
+            text-shadow:
+                0 0 8px #00ff41,
+                0 0 25px #00ff41;
+
             animation: glitch 0.8s infinite;
         }
 
         .access p {
+
+            margin-top: 15px;
+
             color: #aaa;
-            font-size: 16px;
+
+            font-size: clamp(12px, 3vw, 18px);
+
+            line-height: 1.6;
         }
 
         .access .secure {
+
             color: #00ff41;
-            margin-top: 15px;
+
+            font-weight: bold;
+
+            letter-spacing: 2px;
         }
 
+
+        /* =========================================
+           ANIMATIONS
+        ========================================= */
+
         @keyframes blink {
+
             50% {
                 opacity: 0;
             }
+
         }
 
         @keyframes flicker {
-            0%, 18%, 22%, 63%, 64%, 100% {
+
+            0%,
+            18%,
+            22%,
+            63%,
+            64%,
+            65%,
+            100% {
                 opacity: 1;
             }
 
-            20%, 62% {
+            20%,
+            62% {
                 opacity: 0.45;
             }
+
         }
 
         @keyframes glitch {
+
             0% {
                 transform: translate(0);
             }
@@ -237,36 +464,269 @@
             100% {
                 transform: translate(0);
             }
+
         }
 
-        @media (max-width: 600px) {
+
+        /* =========================================
+           TABLET
+        ========================================= */
+
+        @media (max-width: 768px) {
 
             .terminal {
-                padding: 10px;
-            }
-
-            .title {
-                letter-spacing: 2px;
+                padding: 15px;
             }
 
             .terminal-window {
-                padding: 10px;
+                padding: 14px;
+
+                min-height: 550px;
             }
 
             .line {
-                font-size: 11px;
+                font-size: 13px;
             }
 
             .status {
-                font-size: 10px;
+                font-size: 11px;
             }
+
         }
+
+
+        /* =========================================
+           PHONE
+        ========================================= */
+
+        @media (max-width: 600px) {
+
+            html,
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            .terminal {
+
+                width: 100%;
+
+                min-height: 100dvh;
+
+                height: auto;
+
+                padding: 10px;
+            }
+
+
+            /* Header */
+
+            .top {
+
+                padding-bottom: 10px;
+
+                margin-bottom: 10px;
+            }
+
+            .title {
+
+                font-size: 25px;
+
+                letter-spacing: 2px;
+
+                line-height: 1.2;
+            }
+
+            .subtitle {
+
+                margin-top: 6px;
+
+                font-size: 9px;
+
+                letter-spacing: 1.5px;
+
+                line-height: 1.5;
+            }
+
+
+            /* Status */
+
+            .status {
+
+                display: grid;
+
+                grid-template-columns: 1fr 1fr;
+
+                gap: 4px 8px;
+
+                margin-top: 9px;
+
+                font-size: 8px;
+
+                line-height: 1.5;
+            }
+
+            .status span:last-child {
+
+                grid-column: 1 / -1;
+            }
+
+
+            /* Terminal */
+
+            .terminal-window {
+
+                width: 100%;
+
+                min-height: calc(100dvh - 145px);
+
+                height: auto;
+
+                padding: 11px;
+
+                overflow: hidden;
+            }
+
+
+            /* Text */
+
+            .line {
+
+                font-size: 10px;
+
+                line-height: 1.7;
+
+                margin: 5px 0;
+
+                overflow-wrap: anywhere;
+
+                word-break: normal;
+            }
+
+
+            /* Progress */
+
+            .progress-box {
+
+                width: 100%;
+
+                margin: 13px 0;
+
+                padding: 8px;
+            }
+
+            .progress {
+
+                height: 16px;
+
+                padding: 2px;
+            }
+
+            .percent {
+
+                font-size: 10px;
+
+                margin-top: 5px;
+            }
+
+
+            /* Command */
+
+            .input-line {
+
+                font-size: 10px;
+
+                line-height: 1.5;
+
+                max-width: 100%;
+            }
+
+            .cursor {
+
+                width: 7px;
+
+                height: 13px;
+            }
+
+
+            /* Final screen */
+
+            .access {
+
+                padding: 18px;
+            }
+
+            .access h1 {
+
+                font-size: 32px;
+
+                letter-spacing: 3px;
+            }
+
+            .access p {
+
+                font-size: 12px;
+            }
+
+        }
+
+
+        /* =========================================
+           VERY SMALL PHONES
+        ========================================= */
+
+        @media (max-width: 380px) {
+
+            .terminal {
+                padding: 8px;
+            }
+
+            .title {
+                font-size: 21px;
+            }
+
+            .subtitle {
+                font-size: 8px;
+            }
+
+            .status {
+                font-size: 7px;
+            }
+
+            .terminal-window {
+                padding: 9px;
+            }
+
+            .line {
+                font-size: 9px;
+                line-height: 1.65;
+            }
+
+            .percent {
+                font-size: 9px;
+            }
+
+            .input-line {
+                font-size: 9px;
+            }
+
+            .access h1 {
+                font-size: 27px;
+            }
+
+        }
+
     </style>
 </head>
 
+
 <body>
 
+
 <div class="terminal">
+
+
+    <!-- ================= HEADER ================= -->
 
     <div class="top">
 
@@ -278,209 +738,375 @@
             ⚠ RESTRICTED ACCESS // SECURITY PROTOCOL
         </div>
 
+
         <div class="status">
+
             <span>
                 SYSTEM:
-                <span class="online">ONLINE</span>
+                <span class="online">
+                    ONLINE
+                </span>
             </span>
 
             <span>
                 CONNECTION:
-                <span class="online">ENCRYPTED</span>
+                <span class="online">
+                    ENCRYPTED
+                </span>
             </span>
 
             <span>
                 STATUS:
-                <span class="danger">MONITORING</span>
+                <span class="danger">
+                    MONITORING
+                </span>
             </span>
+
         </div>
 
     </div>
 
 
+    <!-- ================= TERMINAL ================= -->
+
     <div class="terminal-window" id="terminal">
+
 
         <div class="line gray">
             [BOOT] Secure terminal initializing...
         </div>
 
+
         <div class="line">
             [SYSTEM] Loading security modules...
         </div>
+
 
         <div class="line">
             [SYSTEM] Establishing protected session...
         </div>
 
+
         <div class="line cyan">
             [NETWORK] Connection channel initialized.
         </div>
+
 
         <div class="line yellow">
             [WARNING] Security verification required.
         </div>
 
+
+        <!-- Progress -->
+
         <div class="progress-box">
 
             <div class="progress">
-                <div class="bar" id="bar"></div>
+
+                <div
+                    class="bar"
+                    id="bar">
+                </div>
+
             </div>
 
-            <div class="percent" id="percent">
+
+            <div
+                class="percent"
+                id="percent">
+
                 SECURITY SCAN: 0%
+
             </div>
 
         </div>
+
+
+        <!-- Dynamic logs -->
 
         <div id="logs"></div>
 
-        <div class="line">
-            <span class="red">&gt;&gt;&gt;</span>
+
+        <!-- Command -->
+
+        <div class="input-line">
+
+            <span class="command-symbol">
+                &gt;&gt;&gt;
+            </span>
+
             <span id="command"></span>
+
             <span class="cursor"></span>
+
         </div>
+
 
     </div>
 
 </div>
 
 
-<!-- Final screen -->
 
-<div class="access" id="access">
+<!-- ================= FINAL SCREEN ================= -->
 
-    <h1>ACCESS GRANTED</h1>
+<div
+    class="access"
+    id="access">
 
-    <p>Security verification completed.</p>
+    <h1>
+        ACCESS GRANTED
+    </h1>
+
+    <p>
+        Security verification completed.
+    </p>
 
     <p class="secure">
-       Thank you for scanning BOY????????!!!!!!!!!!!
+        ✓ SECURE SESSION ESTABLISHED
     </p>
 
 </div>
 
 
+
 <script>
 
-    const bar = document.getElementById("bar");
-    const percent = document.getElementById("percent");
-    const logs = document.getElementById("logs");
-    const command = document.getElementById("command");
+    /* =========================================
+       ELEMENTS
+    ========================================= */
+
+    const bar =
+        document.getElementById("bar");
+
+    const percent =
+        document.getElementById("percent");
+
+    const logs =
+        document.getElementById("logs");
+
+    const command =
+        document.getElementById("command");
+
+
+    /* =========================================
+       FAKE TERMINAL LOGS
+       Visual simulation only
+    ========================================= */
 
     const messages = [
 
-        ["[SCAN] Initializing security analysis...", "green"],
+        [
+            "[SCAN] Initializing security analysis...",
+            "green"
+        ],
 
-        ["[SCAN] Checking security layers...", "green"],
+        [
+            "[SCAN] Checking security layers...",
+            "green"
+        ],
 
-        ["[NETWORK] Analyzing connection channel...", "cyan"],
+        [
+            "[NETWORK] Analyzing connection channel...",
+            "cyan"
+        ],
 
-        ["[AUTH] Verifying session...", "yellow"],
+        [
+            "[AUTH] Verifying secure session...",
+            "yellow"
+        ],
 
-        ["[FIREWALL] Security layer detected.", "red"],
+        [
+            "[FIREWALL] Security layer detected.",
+            "red"
+        ],
 
-        ["[SYSTEM] Processing encrypted session...", "cyan"],
+        [
+            "[SYSTEM] Processing encrypted session...",
+            "cyan"
+        ],
 
-        ["[SYSTEM] Verification sequence running...", "green"],
+        [
+            "[SYSTEM] Verification sequence running...",
+            "green"
+        ],
 
-        ["[ACCESS] Final security check...", "yellow"],
+        [
+            "[ACCESS] Final security check...",
+            "yellow"
+        ],
 
-        ["[ACCESS] Verification completed.", "green"]
+        [
+            "[ACCESS] Verification completed.",
+            "green"
+        ],
+
+        [
+            "[SYSTEM] Secure session initialized.",
+            "green"
+        ]
 
     ];
 
-    let progress = 0;
-    let logIndex = 0;
 
+    /* =========================================
+       ADD LOG
+    ========================================= */
 
     function addLog(text, color) {
 
-        const line = document.createElement("div");
+        const line =
+            document.createElement("div");
 
-        line.className = "line " + color;
+        line.className =
+            "line " + color;
 
-        line.textContent = text;
+        line.textContent =
+            text;
 
         logs.appendChild(line);
 
+
         /*
-            Keep terminal from overflowing
+            Keep only recent logs
+            so mobile screen stays clean
         */
 
-        if (logs.children.length > 12) {
-            logs.removeChild(logs.children[0]);
+        if (logs.children.length > 10) {
+
+            logs.removeChild(
+                logs.children[0]
+            );
+
         }
+
     }
 
 
-    const scan = setInterval(() => {
+    /* =========================================
+       SCAN ANIMATION
+    ========================================= */
 
-        progress += Math.floor(Math.random() * 6) + 2;
+    let progress = 0;
 
-        if (progress >= 100) {
+    let logIndex = 0;
 
-            progress = 100;
 
-            clearInterval(scan);
+    const scan =
+        setInterval(() => {
+
+
+            /*
+                Random progress
+            */
+
+            progress +=
+                Math.floor(
+                    Math.random() * 6
+                ) + 2;
+
+
+            /*
+                Maximum 100%
+            */
+
+            if (progress >= 100) {
+
+                progress = 100;
+
+                clearInterval(scan);
+
+            }
+
+
+            /*
+                Update progress bar
+            */
+
+            bar.style.width =
+                progress + "%";
+
 
             percent.textContent =
-                "SECURITY SCAN: 100%";
-
-            bar.style.width = "100%";
-
-            setTimeout(() => {
-
-                document.getElementById("access")
-                    .style.display = "flex";
-
-            }, 1800);
-        }
-
-        bar.style.width = progress + "%";
-
-        percent.textContent =
-            "SECURITY SCAN: " + progress + "%";
+                "SECURITY SCAN: "
+                + progress
+                + "%";
 
 
-        if (
-            logIndex < messages.length &&
-            progress >= (logIndex + 1) * 10
-        ) {
+            /*
+                Add terminal logs
+            */
 
-            addLog(
-                messages[logIndex][0],
-                messages[logIndex][1]
-            );
+            if (
+                logIndex < messages.length &&
+                progress >=
+                (logIndex + 1) * 9
+            ) {
 
-            logIndex++;
-        }
+                addLog(
+                    messages[logIndex][0],
+                    messages[logIndex][1]
+                );
 
-    }, 450);
+                logIndex++;
+
+            }
 
 
-    /* Fake terminal typing */
+            /*
+                Finish
+            */
 
-    const text = "verify_secure_session";
+            if (progress === 100) {
+
+                setTimeout(() => {
+
+                    document
+                        .getElementById("access")
+                        .style.display = "flex";
+
+                }, 1800);
+
+            }
+
+
+        }, 450);
+
+
+
+    /* =========================================
+       TERMINAL TYPING
+    ========================================= */
+
+    const text =
+        "verify_secure_session";
 
     let i = 0;
+
 
     function typeCommand() {
 
         if (i < text.length) {
 
-            command.textContent += text[i];
+            command.textContent +=
+                text[i];
 
             i++;
 
-            setTimeout(typeCommand, 90);
+            setTimeout(
+                typeCommand,
+                90
+            );
 
         }
 
     }
 
+
     typeCommand();
 
 </script>
+
 
 </body>
 </html>
